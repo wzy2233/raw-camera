@@ -6,7 +6,29 @@
 # 产物放进 app/src/main/jniLibs/，Gradle 打包时会自动带上。
 set -e
 
-NDK=${NDK:-/c/Users/wzy/AppData/Local/Android/Sdk/ndk/27.2.12479018}
+# NDK 定位：优先用显式指定的 $NDK，其次 ANDROID_NDK_HOME / ANDROID_NDK_ROOT，
+# 最后在常见的 SDK 安装位置里找版本号最大的那个。都没有就报错退出。
+if [ -z "$NDK" ]; then
+    NDK="${ANDROID_NDK_HOME:-${ANDROID_NDK_ROOT:-}}"
+fi
+if [ -z "$NDK" ] || [ ! -d "$NDK" ]; then
+    for base in "${ANDROID_HOME:-}" "${ANDROID_SDK_ROOT:-}" \
+                "$HOME/Android/Sdk" "$HOME/Library/Android/sdk" \
+                /c/Users/*/AppData/Local/Android/Sdk /mnt/c/Users/*/AppData/Local/Android/Sdk; do
+        [ -d "$base/ndk" ] || continue
+        cand=$(ls -1d "$base"/ndk/*/ 2>/dev/null | sort -V | tail -1)
+        if [ -n "$cand" ] && [ -d "$cand/toolchains/llvm/prebuilt" ]; then
+            NDK="${cand%/}"
+            break
+        fi
+    done
+fi
+if [ -z "$NDK" ] || [ ! -d "$NDK" ]; then
+    echo "找不到 NDK。请设置环境变量 NDK 或 ANDROID_NDK_HOME 指向 NDK 目录，例如：" >&2
+    echo "    export ANDROID_NDK_HOME=\$HOME/Android/Sdk/ndk/27.2.12479018" >&2
+    exit 1
+fi
+echo "使用 NDK: $NDK"
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
 OUT_ROOT="$(cd "$SRC_DIR/.." && pwd)/jniLibs"
 
