@@ -1,0 +1,31 @@
+# 构建产物
+build/
+*.apk
+*.aab
+*.so
+app/src/main/jniLibs/
+
+# Gradle
+.gradle/
+gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# 调试产物（这个项目里经常有临时样张）
+_*.jpg
+_*.png
+_*.dng
+_*.heic
+_*.xml
+_*.txt
+*.log
+
+# tools 下的调试图与中间数据（只保留脚本和文档）
+tools/**/*.png
+tools/**/*.jpg
+tools/**/*.npy
+tools/**/*.npz
