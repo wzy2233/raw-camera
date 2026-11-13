@@ -5,6 +5,8 @@
 
 **关键词 / Keywords**：`android` `camera2` `raw` `dng` `hdr` `burst-photography` `computational-photography` `image-processing` `demosaic` `super-resolution` `exposure-fusion` `tone-mapping` `jpeg-encoder` `ndk` `cpp` `kotlin` `no-ml` `handheld`
 
+**[⬇ 下载 APK](https://github.com/wzy2233/raw-camera/releases/latest)** · 需要 Android 9+ / 支持 RAW 输出的设备 · 自签名，安装前请卸载旧版本
+
 ---
 
 ## 效果
@@ -241,6 +243,30 @@ bash app/src/main/cpp/build_native.sh
 ```
 
 脚本会自动探测 NDK：`$NDK` → `$ANDROID_NDK_HOME` → 常见 SDK 位置。
+
+### 打一个可分发的签名包
+
+仓库不含签名密钥（密钥文件与密码都不进版本库）。自己发布时：
+
+```bash
+# 1. 生成密钥（只做一次，务必备份）
+keytool -genkeypair -v -keystore ~/my-release.jks -alias raw-camera \
+        -keyalg RSA -keysize 4096 -validity 10950
+
+# 2. 把四项写进 local.properties（该文件已被 .gitignore 排除）
+cat >> local.properties <<'EOF'
+RELEASE_STORE_FILE=/绝对路径/my-release.jks
+RELEASE_STORE_PASSWORD=你的密码
+RELEASE_KEY_ALIAS=raw-camera
+RELEASE_KEY_PASSWORD=你的密码
+EOF
+
+# 3. 构建 + 校验
+./gradlew assembleRelease
+apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+```
+
+`app/build.gradle` 在没有这些键时会跳过签名，`assembleDebug` 不受影响。
 
 **环境**：compileSdk 34 / minSdk 28 / arm64-v8a + armeabi-v7a
 

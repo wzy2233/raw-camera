@@ -3,6 +3,14 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// release 签名参数从 local.properties 读（该文件已被 .gitignore 排除）。
+// 没有这些键时 release 保持未签名，不影响 debug 构建。
+def ksProps = new Properties()
+def ksFile = rootProject.file("local.properties")
+if (ksFile.exists()) {
+    ksFile.withInputStream { ksProps.load(it) }
+}
+
 android {
     namespace 'com.camera.app'
     compileSdk 34
@@ -17,8 +25,20 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            if (ksProps.getProperty("RELEASE_STORE_FILE")) {
+                storeFile file(ksProps.getProperty("RELEASE_STORE_FILE"))
+                storePassword ksProps.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias ksProps.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword ksProps.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
